@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:task_manager_hilagro/features/splash/presentation/widgets/title_task.dart';
@@ -6,6 +5,7 @@ import 'package:task_manager_hilagro/features/tasks/domain/entities/task.dart';
 import 'package:task_manager_hilagro/features/tasks/presentation/providers/task_provider.dart';
 import 'package:task_manager_hilagro/features/auth/presentation/providers/auth_provider.dart' as custom_auth;
 import 'package:uuid/uuid.dart';
+import 'dart:developer' as dev;
 
 class TaskListPage extends StatefulWidget {
   const TaskListPage({super.key});
@@ -26,10 +26,10 @@ class _TaskListPageState extends State<TaskListPage> {
       final taskProvider = Provider.of<TaskProvider>(context, listen: false);
       
       if (authProvider.currentUser != null) {
-        print('Inicializando TaskProvider con usuario: ${authProvider.currentUser!.uid}');
+        dev.log('Inicializando TaskProvider con usuario: ${authProvider.currentUser!.uid}');
         taskProvider.setCurrentUser(authProvider.currentUser!.uid);
       } else {
-        print('Usuario no encontrado en AuthProvider');
+        dev.log('Usuario no encontrado en AuthProvider');
       }
     });
   }
@@ -206,12 +206,6 @@ class _TaskList extends StatelessWidget {
           ),
           Expanded(child: Consumer<TaskProvider>(
             builder: (_, provider, __) {
-              print('TaskProvider Debug:');
-              print('- Current User ID: ${provider.currentUserId}');
-              print('- Total tasks in list: ${provider.taskList.length}');
-              print('- Filtered tasks: ${provider.taskList.length}');
-              print('- Pending tasks: ${provider.pendingTasks.length}');
-              print('- Completed tasks: ${provider.completedTasks.length}');
               
               final completedTasks = provider.completedTasks;
               final pendingTasks = provider.pendingTasks;

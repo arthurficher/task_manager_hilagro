@@ -45,7 +45,6 @@ class MyApp extends StatelessWidget {
 
       home: Consumer<custom_auth.AuthProvider>(
         builder: (context, authProvider, _) {
-          print('APP: Building with status: ${authProvider.status}');
           switch (authProvider.status) {
             case custom_auth.AuthStatus.initial:
             case custom_auth.AuthStatus.loading:

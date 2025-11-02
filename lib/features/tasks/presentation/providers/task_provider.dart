@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:task_manager_hilagro/features/tasks/domain/entities/task.dart';
 import 'package:task_manager_hilagro/features/tasks/domain/repositories/task_repository.dart';
 import 'package:uuid/uuid.dart';
+import 'dart:developer' as dev;
 
 class TaskProvider extends ChangeNotifier {
   List<Task> _taskList = [];
@@ -38,7 +39,7 @@ class TaskProvider extends ChangeNotifier {
     try {
       _taskList = await _repository.getTasksByUserId(_currentUserId!);
     } catch (e) {
-      debugPrint('Error loading tasks from SQLite: $e');
+      dev.log('Error loading tasks from SQLite: $e');
       _taskList = [];
     }
 
@@ -53,7 +54,7 @@ class TaskProvider extends ChangeNotifier {
       _todayTasks = await _repository.getTasksForToday(_currentUserId!);
       notifyListeners();
     } catch (e) {
-      debugPrint('Error loading today tasks: $e');
+      dev.log('Error loading today tasks: $e');
       _todayTasks = [];
     }
   }
@@ -65,7 +66,7 @@ class TaskProvider extends ChangeNotifier {
       _weekTasks = await _repository.getTasksForWeek(_currentUserId!);
       notifyListeners();
     } catch (e) {
-      debugPrint('Error loading week tasks: $e');
+      dev.log('Error loading week tasks: $e');
       _weekTasks = [];
     }
   }
@@ -103,7 +104,7 @@ class TaskProvider extends ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      debugPrint('Error adding task to SQLite: $e');
+      dev.log('Error adding task to SQLite: $e');
     }
   }
 
@@ -121,7 +122,7 @@ class TaskProvider extends ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      debugPrint('Error toggling task in SQLite: $e');
+      dev.log('Error toggling task in SQLite: $e');
     }
   }
 
@@ -150,7 +151,7 @@ class TaskProvider extends ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      debugPrint('Error removing task from SQLite: $e');
+      dev.log('Error removing task from SQLite: $e');
     }
   }
 
@@ -172,7 +173,7 @@ class TaskProvider extends ChangeNotifier {
           notifyListeners();
         }
       } catch (e) {
-        debugPrint('Error updating task in SQLite: $e');
+        dev.log('Error updating task in SQLite: $e');
       }
     }
   }
@@ -183,7 +184,7 @@ class TaskProvider extends ChangeNotifier {
     try {
       return await _repository.getTaskStatsByUserId(_currentUserId!);
     } catch (e) {
-      debugPrint('Error getting task stats: $e');
+      dev.log('Error getting task stats: $e');
       return {'total': 0, 'completed': 0, 'pending': 0};
     }
   }
@@ -194,7 +195,7 @@ class TaskProvider extends ChangeNotifier {
     try {
       return await _repository.searchTasks(_currentUserId!, query);
     } catch (e) {
-      debugPrint('Error searching tasks: $e');
+      dev.log('Error searching tasks: $e');
       return [];
     }
   }
@@ -219,7 +220,7 @@ class TaskProvider extends ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      debugPrint('Error deleting all user tasks: $e');
+      dev.log('Error deleting all user tasks: $e');
     }
   }
 }

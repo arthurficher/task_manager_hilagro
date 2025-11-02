@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:task_manager_hilagro/app/app.dart';
 import 'package:task_manager_hilagro/features/auth/presentation/providers/auth_provider.dart' as custom_auth;
 import 'package:task_manager_hilagro/features/tasks/presentation/providers/task_provider.dart';
+import 'dart:developer' as dev;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,7 +15,7 @@ void main() async {
     await initializeDateFormatting('es_ES', null);
     await initializeDateFormatting('es', null);
   } catch (e) {
-    print('Error initializing date formatting: $e');
+    dev.log('Error initializing date formatting: $e');
   }
   
   runApp(
