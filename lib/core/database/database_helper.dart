@@ -22,7 +22,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -36,6 +36,7 @@ class DatabaseHelper {
         description TEXT NOT NULL DEFAULT '',
         done INTEGER NOT NULL DEFAULT 0,
         created_at INTEGER NOT NULL,
+        due_date INTEGER,
         user_id TEXT NOT NULL
       )
     ''');
@@ -48,11 +49,16 @@ class DatabaseHelper {
       CREATE INDEX idx_tasks_done ON tasks(done)
     ''');
 
-    print('Database created successfully');
+    await db.execute('''
+      CREATE INDEX idx_tasks_due_date ON tasks(due_date)
+    ''');
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    print('Database upgraded from version $oldVersion to $newVersion');
+    if (oldVersion < 2) {
+      await db.execute('ALTER TABLE tasks ADD COLUMN due_date INTEGER');
+      await db.execute('CREATE INDEX idx_tasks_due_date ON tasks(due_date)');
+    }
   }
 
   // CRUD
@@ -65,10 +71,8 @@ class DatabaseHelper {
         task.toMap(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
-      print('Task inserted: ${task.title}');
       return 1;
     } catch (e) {
-      print('Error inserting task: $e');
       return 0;
     }
   }
@@ -82,7 +86,6 @@ class DatabaseHelper {
       );
       return maps.map((map) => Task.fromMap(map)).toList();
     } catch (e) {
-      print('Error getting all tasks: $e');
       return [];
     }
   }
@@ -98,7 +101,44 @@ class DatabaseHelper {
       );
       return maps.map((map) => Task.fromMap(map)).toList();
     } catch (e) {
-      print('Error getting tasks for user $userId: $e');
+      return [];
+    }
+  }
+
+  Future<List<Task>> getTasksForToday(String userId) async {
+    final db = await database;
+    try {
+      final now = DateTime.now();
+      final startOfDay = DateTime(now.year, now.month, now.day).millisecondsSinceEpoch;
+      final endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59).millisecondsSinceEpoch;
+
+      final List<Map<String, dynamic>> maps = await db.query(
+        'tasks',
+        where: 'user_id = ? AND due_date >= ? AND due_date <= ?',
+        whereArgs: [userId, startOfDay, endOfDay],
+        orderBy: 'due_date ASC',
+      );
+      return maps.map((map) => Task.fromMap(map)).toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  Future<List<Task>> getTasksForWeek(String userId) async {
+    final db = await database;
+    try {
+      final now = DateTime.now();
+      final startOfWeek = DateTime(now.year, now.month, now.day - now.weekday + 1).millisecondsSinceEpoch;
+      final endOfWeek = DateTime(now.year, now.month, now.day - now.weekday + 7, 23, 59, 59).millisecondsSinceEpoch;
+
+      final List<Map<String, dynamic>> maps = await db.query(
+        'tasks',
+        where: 'user_id = ? AND due_date >= ? AND due_date <= ?',
+        whereArgs: [userId, startOfWeek, endOfWeek],
+        orderBy: 'due_date ASC',
+      );
+      return maps.map((map) => Task.fromMap(map)).toList();
+    } catch (e) {
       return [];
     }
   }
@@ -114,7 +154,6 @@ class DatabaseHelper {
       );
       return maps.map((map) => Task.fromMap(map)).toList();
     } catch (e) {
-      print('Error getting pending tasks for user $userId: $e');
       return [];
     }
   }
@@ -130,7 +169,6 @@ class DatabaseHelper {
       );
       return maps.map((map) => Task.fromMap(map)).toList();
     } catch (e) {
-      print('Error getting completed tasks for user $userId: $e');
       return [];
     }
   }
@@ -144,10 +182,8 @@ class DatabaseHelper {
         where: 'id = ?',
         whereArgs: [task.id],
       );
-      print('Task updated: ${task.title}');
       return result;
     } catch (e) {
-      print('Error updating task: $e');
       return 0;
     }
   }
@@ -160,10 +196,8 @@ class DatabaseHelper {
         where: 'id = ?',
         whereArgs: [taskId],
       );
-      print('Task deleted: $taskId');
       return result;
     } catch (e) {
-      print('Error deleting task: $e');
       return 0;
     }
   }
@@ -176,10 +210,8 @@ class DatabaseHelper {
         where: 'user_id = ?',
         whereArgs: [userId],
       );
-      print('All tasks deleted for user: $userId');
       return result;
     } catch (e) {
-      print('Error deleting tasks for user $userId: $e');
       return 0;
     }
   }
@@ -193,7 +225,6 @@ class DatabaseHelper {
       );
       return Sqflite.firstIntValue(result) ?? 0;
     } catch (e) {
-      print('Error getting task count: $e');
       return 0;
     }
   }
@@ -220,7 +251,6 @@ class DatabaseHelper {
       }
       return {'total': 0, 'completed': 0, 'pending': 0};
     } catch (e) {
-      print('Error getting task stats: $e');
       return {'total': 0, 'completed': 0, 'pending': 0};
     }
   }
@@ -236,7 +266,6 @@ class DatabaseHelper {
       );
       return maps.map((map) => Task.fromMap(map)).toList();
     } catch (e) {
-      print('Error searching tasks: $e');
       return [];
     }
   }

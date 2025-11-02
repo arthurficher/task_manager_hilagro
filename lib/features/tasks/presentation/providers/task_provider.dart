@@ -5,6 +5,8 @@ import 'package:uuid/uuid.dart';
 
 class TaskProvider extends ChangeNotifier {
   List<Task> _taskList = [];
+  List<Task> _todayTasks = [];
+  List<Task> _weekTasks = [];
   bool _isLoading = false;
   String? _currentUserId;
   
@@ -14,26 +16,27 @@ class TaskProvider extends ChangeNotifier {
   // Getters
   String? get currentUserId => _currentUserId;
   List<Task> get taskList => _taskList;
+  List<Task> get todayTasks => _todayTasks;
+  List<Task> get weekTasks => _weekTasks;
   List<Task> get pendingTasks => _taskList.where((task) => !task.done).toList();
   List<Task> get completedTasks => _taskList.where((task) => task.done).toList();
   bool get isLoading => _isLoading;
 
   void setCurrentUser(String userId) {
-    print('TaskProvider: Setting current user to $userId');
     _currentUserId = userId;
     fetchTasks();
+    fetchTodayTasks();
+    fetchWeekTasks();
   }
 
   Future<void> fetchTasks() async {
     if (_currentUserId == null) return;
     
-    print('TaskProvider: Fetching tasks from SQLite for user $_currentUserId');
     _isLoading = true;
     notifyListeners();
 
     try {
       _taskList = await _repository.getTasksByUserId(_currentUserId!);
-      print('TaskProvider: Loaded ${_taskList.length} tasks from SQLite');
     } catch (e) {
       debugPrint('Error loading tasks from SQLite: $e');
       _taskList = [];
@@ -43,11 +46,32 @@ class TaskProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addNewTask(dynamic taskOrTitle, [String? description]) async {
-    if (_currentUserId == null) {
-      print('TaskProvider: Cannot add task - no current user set');
-      return;
+  Future<void> fetchTodayTasks() async {
+    if (_currentUserId == null) return;
+    
+    try {
+      _todayTasks = await _repository.getTasksForToday(_currentUserId!);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error loading today tasks: $e');
+      _todayTasks = [];
     }
+  }
+
+  Future<void> fetchWeekTasks() async {
+    if (_currentUserId == null) return;
+    
+    try {
+      _weekTasks = await _repository.getTasksForWeek(_currentUserId!);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error loading week tasks: $e');
+      _weekTasks = [];
+    }
+  }
+
+  Future<void> addNewTask(dynamic taskOrTitle, [String? description, DateTime? dueDate]) async {
+    if (_currentUserId == null) return;
 
     Task newTask;
     
@@ -63,22 +87,20 @@ class TaskProvider extends ChangeNotifier {
         title: taskOrTitle,
         description: description ?? '',
         createdAt: DateTime.now(),
+        dueDate: dueDate,
         userId: _currentUserId!,
       );
     } else {
       return;
     }
-
-    print('TaskProvider: Adding new task to SQLite: ${newTask.title}');
     
     try {
       final success = await _repository.addTask(newTask);
       if (success) {
-        _taskList.insert(0, newTask); 
-        print('TaskProvider: Task added successfully to SQLite');
+        _taskList.insert(0, newTask);
+        await fetchTodayTasks();
+        await fetchWeekTasks();
         notifyListeners();
-      } else {
-        print('TaskProvider: Failed to add task to SQLite');
       }
     } catch (e) {
       debugPrint('Error adding task to SQLite: $e');
@@ -92,9 +114,11 @@ class TaskProvider extends ChangeNotifier {
         final index = _taskList.indexWhere((t) => t.id == task.id);
         if (index != -1) {
           _taskList[index] = _taskList[index].copyWith(done: !_taskList[index].done);
-          print('TaskProvider: Task ${task.title} toggled to ${_taskList[index].done} in SQLite');
-          notifyListeners();
         }
+        
+        await fetchTodayTasks();
+        await fetchWeekTasks();
+        notifyListeners();
       }
     } catch (e) {
       debugPrint('Error toggling task in SQLite: $e');
@@ -116,14 +140,13 @@ class TaskProvider extends ChangeNotifier {
     } else {
       return;
     }
-
-    print('TaskProvider: Removing task from SQLite with ID: $taskId');
     
     try {
       final success = await _repository.deleteTask(taskId);
       if (success) {
         _taskList.removeWhere((task) => task.id == taskId);
-        print('TaskProvider: Task removed successfully from SQLite');
+        await fetchTodayTasks();
+        await fetchWeekTasks();
         notifyListeners();
       }
     } catch (e) {
@@ -131,19 +154,21 @@ class TaskProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> updateTask(String taskId, String title, String description) async {
+  Future<void> updateTask(String taskId, String title, String description, [DateTime? dueDate]) async {
     final index = _taskList.indexWhere((task) => task.id == taskId);
     if (index != -1) {
       final updatedTask = _taskList[index].copyWith(
         title: title,
         description: description,
+        dueDate: dueDate,
       );
       
       try {
         final success = await _repository.updateTask(updatedTask);
         if (success) {
           _taskList[index] = updatedTask;
-          print('TaskProvider: Task updated successfully in SQLite');
+          await fetchTodayTasks();
+          await fetchWeekTasks();
           notifyListeners();
         }
       } catch (e) {
@@ -175,8 +200,9 @@ class TaskProvider extends ChangeNotifier {
   }
 
   void clearTasks() {
-    print('TaskProvider: Clearing all tasks');
     _taskList.clear();
+    _todayTasks.clear();
+    _weekTasks.clear();
     _currentUserId = null;
     notifyListeners();
   }
@@ -188,7 +214,8 @@ class TaskProvider extends ChangeNotifier {
       final success = await _repository.deleteAllTasksByUserId(_currentUserId!);
       if (success) {
         _taskList.clear();
-        print('TaskProvider: All user tasks deleted from SQLite');
+        _todayTasks.clear();
+        _weekTasks.clear();
         notifyListeners();
       }
     } catch (e) {

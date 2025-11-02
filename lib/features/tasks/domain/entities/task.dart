@@ -1,12 +1,13 @@
 import 'package:equatable/equatable.dart';
 
 class Task extends Equatable {
-  final String id; 
+  final String id;
   final String title;
   final String description;
   final bool done;
   final DateTime createdAt;
-  final String userId; 
+  final DateTime? dueDate;
+  final String userId;
 
   const Task({
     required this.id,
@@ -14,6 +15,7 @@ class Task extends Equatable {
     required this.description,
     this.done = false,
     required this.createdAt,
+    this.dueDate,
     required this.userId,
   });
 
@@ -23,6 +25,7 @@ class Task extends Equatable {
     String? description,
     bool? done,
     DateTime? createdAt,
+    DateTime? dueDate,
     String? userId,
   }) {
     return Task(
@@ -31,19 +34,9 @@ class Task extends Equatable {
       description: description ?? this.description,
       done: done ?? this.done,
       createdAt: createdAt ?? this.createdAt,
+      dueDate: dueDate ?? this.dueDate,
       userId: userId ?? this.userId,
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-      'description': description,
-      'done': done,
-      'createdAt': createdAt.millisecondsSinceEpoch,
-      'userId': userId,
-    };
   }
 
   Map<String, dynamic> toMap() {
@@ -53,6 +46,7 @@ class Task extends Equatable {
       'description': description,
       'done': done ? 1 : 0,
       'created_at': createdAt.millisecondsSinceEpoch,
+      'due_date': dueDate?.millisecondsSinceEpoch,
       'user_id': userId,
     };
   }
@@ -62,8 +56,11 @@ class Task extends Equatable {
       id: map['id'] as String,
       title: map['title'] as String,
       description: map['description'] as String? ?? '',
-      done: (map['done'] as int) == 1, 
+      done: (map['done'] as int) == 1,
       createdAt: DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int),
+      dueDate: map['due_date'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['due_date'] as int)
+          : null,
       userId: map['user_id'] as String,
     );
   }
@@ -75,15 +72,18 @@ class Task extends Equatable {
       description: json['description'] as String? ?? '',
       done: json['done'] as bool? ?? false,
       createdAt: DateTime.fromMillisecondsSinceEpoch(json['createdAt'] as int),
+      dueDate: json['dueDate'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(json['dueDate'] as int)
+          : null,
       userId: json['userId'] as String,
     );
   }
 
   @override
-  List<Object?> get props => [id, title, description, done, createdAt, userId];
+  List<Object?> get props => [id, title, description, done, createdAt, dueDate, userId];
 
   @override
   String toString() {
-    return 'Task{id: $id, title: $title, done: $done, userId: $userId}';
+    return 'Task{id: $id, title: $title, done: $done, createdAt: $createdAt, dueDate: $dueDate, userId: $userId}';
   }
 }

@@ -12,6 +12,14 @@ class TaskRepository {
     return await _databaseHelper.getTasksByUserId(userId);
   }
 
+  Future<List<Task>> getTasksForToday(String userId) async {
+    return await _databaseHelper.getTasksForToday(userId);
+  }
+
+  Future<List<Task>> getTasksForWeek(String userId) async {
+    return await _databaseHelper.getTasksForWeek(userId);
+  }
+
   Future<List<Task>> getPendingTasksByUserId(String userId) async {
     return await _databaseHelper.getPendingTasksByUserId(userId);
   }

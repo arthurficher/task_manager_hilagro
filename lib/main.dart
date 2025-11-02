@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:task_manager_hilagro/app/app.dart';
@@ -10,6 +10,12 @@ import 'package:task_manager_hilagro/features/tasks/presentation/providers/task_
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  try {
+    await initializeDateFormatting('es_ES', null);
+    await initializeDateFormatting('es', null);
+  } catch (e) {
+    print('Error initializing date formatting: $e');
+  }
   
   runApp(
     MultiProvider(

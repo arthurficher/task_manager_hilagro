@@ -1,63 +1,75 @@
 import 'package:flutter/foundation.dart';
-import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:firebase_auth/firebase_auth.dart';
 
 enum AuthStatus { initial, loading, authenticated, unauthenticated, error }
 
 class AuthProvider extends ChangeNotifier {
-  final firebase_auth.FirebaseAuth _firebaseAuth;
-  
+  final FirebaseAuth _firebaseAuth;
+
   AuthProvider(this._firebaseAuth) {
     _listenToAuthChanges();
   }
 
-  // States
   AuthStatus _status = AuthStatus.initial;
-  firebase_auth.User? _currentUser;
+  User? _currentUser;
   String? _errorMessage;
 
-  // Getters
-  AuthStatus get status => _status;
-  firebase_auth.User? get currentUser => _currentUser;
-  String? get errorMessage => _errorMessage;
-  bool get isAuthenticated => _currentUser != null;
-
-  // Listen to Firebase Auth state changes
-  void _listenToAuthChanges() {
-    _firebaseAuth.authStateChanges().listen((user) {
-      _currentUser = user;
-      if (user != null) {
-        _status = AuthStatus.authenticated;
-      } else {
-        _status = AuthStatus.unauthenticated;
-      }
-      notifyListeners();
-    });
+  AuthStatus get status {
+    return _status;
   }
 
-  // LOGIN Method
+  User? get currentUser {
+    return _currentUser;
+  }
+
+  String? get errorMessage {
+    return _errorMessage;
+  }
+
+  bool get isAuthenticated => _currentUser != null;
+
+  void _listenToAuthChanges() {
+    try {
+      _firebaseAuth.authStateChanges().listen(
+        (User? user) {
+          _currentUser = user;
+          if (user != null) {
+            _status = AuthStatus.authenticated;
+            _clearError();
+          } else {
+            _status = AuthStatus.unauthenticated;
+          }
+          notifyListeners();
+        },
+        onError: (error) {
+          _setError('Error de autenticación: ${error.toString()}');
+          notifyListeners();
+        },
+      );
+    } catch (e) {
+      _setError('Error al inicializar autenticación: ${e.toString()}');
+      notifyListeners();
+    }
+  }
+
   Future<void> login(String email, String password) async {
     try {
       _setLoading();
       _clearError();
 
-      final credential = await _firebaseAuth.signInWithEmailAndPassword(
+      await _firebaseAuth.signInWithEmailAndPassword(
         email: email.trim(),
         password: password.trim(),
       );
-
-      if (credential.user != null) {
-        _currentUser = credential.user;
-        _status = AuthStatus.authenticated;
-      }
-    } on firebase_auth.FirebaseAuthException catch (e) {
+    } on FirebaseAuthException catch (e) {
       _handleFirebaseError(e);
+      notifyListeners(); // Solo notificar en caso de error
     } catch (e) {
       _setError('Error inesperado: ${e.toString()}');
+      notifyListeners(); // Solo notificar en caso de error
     }
-    notifyListeners();
   }
 
-  // LOGOUT Method
   Future<void> logout() async {
     try {
       await _firebaseAuth.signOut();
@@ -65,12 +77,27 @@ class AuthProvider extends ChangeNotifier {
       _status = AuthStatus.unauthenticated;
       _clearError();
     } catch (e) {
-      _setError('Error al cerrar sesión');
+      _setError('Error al cerrar sesión: ${e.toString()}');
     }
     notifyListeners();
   }
 
-  // Helper Methods
+  void checkAuthState() {
+    try {
+      _clearError();
+      final User? user = _firebaseAuth.currentUser;
+      _currentUser = user;
+      if (user != null) {
+        _status = AuthStatus.authenticated;
+      } else {
+        _status = AuthStatus.unauthenticated;
+      }
+    } catch (e) {
+      _setError('Error al verificar estado: ${e.toString()}');
+    }
+    notifyListeners();
+  }
+
   void _setLoading() {
     _status = AuthStatus.loading;
     notifyListeners();
@@ -82,10 +109,12 @@ class AuthProvider extends ChangeNotifier {
   }
 
   void _clearError() {
+    if (_errorMessage != null) {
+    }
     _errorMessage = null;
   }
 
-  void _handleFirebaseError(firebase_auth.FirebaseAuthException e) {
+  void _handleFirebaseError(FirebaseAuthException e) {
     switch (e.code) {
       case 'user-not-found':
         _setError('No existe una cuenta con este email');
@@ -106,14 +135,17 @@ class AuthProvider extends ChangeNotifier {
         _setError('Error de conexión. Verifique su internet');
         break;
       default:
-        _setError('Error de autenticación: ${e.message}');
+        _setError(
+          'Error de autenticación: ${e.message ?? 'Error desconocido'}',
+        );
     }
   }
 
-  // Clear error manually
   void clearError() {
     _clearError();
+    if (_status == AuthStatus.error) {
+      checkAuthState();
+    }
     notifyListeners();
   }
 }
-

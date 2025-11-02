@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:task_manager_hilagro/features/auth/presentation/providers/auth_provider.dart' as custom_auth;
 import 'package:task_manager_hilagro/features/tasks/presentation/pages/home_page1.dart';
-import 'package:task_manager_hilagro/features/tasks/presentation/pages/task_list_page.dart';
 import 'package:task_manager_hilagro/shared/widgets/custom_text_field.dart';
 import 'package:task_manager_hilagro/shared/widgets/custom_button.dart';
 
@@ -23,7 +22,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Iniciar Sesión'),
+        title: Center(child: const Text('Iniciar Sesión')),
         backgroundColor: const Color(0xFF40B7AD),
         foregroundColor: Colors.white,
       ),
@@ -33,7 +32,7 @@ class _LoginPageState extends State<LoginPage> {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (authProvider.status == custom_auth.AuthStatus.authenticated) {
               Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (_) => TaskListPage()),
+                MaterialPageRoute(builder: (_) => const HomePage()),
               );
             }
           });
