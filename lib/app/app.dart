@@ -7,20 +7,17 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    final size =
-        MediaQuery.of(context).size;
-    final width = size.width; 
-    final height = size.height;
     const primary = Color(0xFF40B7AD);
     const textColor = Color(0xFF4A4A4A);
     const backgroundColor = Color(0xFFF5F5F5);
+    
     return MaterialApp(
       title: 'Administrador de Tareas',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: primary),
         scaffoldBackgroundColor: backgroundColor,
-        textTheme: Theme.of(context).textTheme.apply(
+        textTheme: const TextTheme().apply(
           fontFamily: 'Poppins',
           bodyColor: textColor,
           displayColor: textColor,
@@ -30,20 +27,19 @@ class MyApp extends StatelessWidget {
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            minimumSize: Size(double.infinity, width*0.1,
-            ),
+            minimumSize: const Size(double.infinity, 56),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(width * 0.010)
+              borderRadius: BorderRadius.circular(12)
             ),
             backgroundColor: primary,
-            textStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontSize: height *0.02,
+            textStyle: const TextStyle(
+              fontSize: 18,
               fontWeight: FontWeight.w700,
             )
           )
         ),
       ),
-      home: SplashPage(),
+      home: const SplashPage(),
     );
   }
 }
