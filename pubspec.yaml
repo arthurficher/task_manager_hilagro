@@ -37,8 +37,8 @@ dependencies:
   equatable: ^2.0.5
   
   # Firebase
-  firebase_core: ^2.15.1
-  firebase_auth: ^4.9.0
+  firebase_core: ^2.27.1
+  firebase_auth: ^4.17.8
   
   # Local Database
   sqflite: ^2.3.0
