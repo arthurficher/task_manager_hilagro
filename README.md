@@ -73,6 +73,21 @@ flutter pub get
 flutter run
 ```
 
+# Configuración de Firebase
+
+## Pasos para configurar Firebase:
+
+1. Crear proyecto en [Firebase Console](https://console.firebase.google.com/)
+2. Agregar app Android con package: `com.example.task_manager_hilagro`
+3. Descargar `google-services.json` y colocar en: `android/app/`
+4. Agregar app iOS con bundle ID: `com.example.taskManagerHilagro`
+5. Descargar `GoogleService-Info.plist` y colocar en: `ios/Runner/`
+6. Habilitar **Email/Password** en Authentication
+
+## Estructura de Firebase requerida:
+- Authentication: Email/Password habilitado
+- Sin Firestore ni Realtime Database (solo SQLite local)
+
 ## Dependencias Principales
 
 ```yaml
@@ -123,3 +138,4 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+
