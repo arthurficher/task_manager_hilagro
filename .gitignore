@@ -50,11 +50,6 @@ app.*.map.json
 **/android/app/src/main/res/drawable-*/
 **/android/app/src/main/res/values/styles.xml
 **/android/**/launch_background.xml
-**/android/gradle.properties
-**/android/settings.gradle.kts
-**/android/**/build.gradle.kts
-**/android/gradle/wrapper/gradle-wrapper.properties
-**/android/app/src/main/AndroidManifest.xml
 
 # iOS generated files
 **/ios/Flutter/
