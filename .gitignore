@@ -43,14 +43,6 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# Android generated files
-**/android/**/ic_launcher.png
-**/android/**/ic_launcher_*.png
-**/android/app/src/main/res/mipmap-*/
-**/android/app/src/main/res/drawable-*/
-**/android/app/src/main/res/values/styles.xml
-**/android/**/launch_background.xml
-
 # iOS generated files
 **/ios/Flutter/
 **/ios/Runner/Assets.xcassets/
